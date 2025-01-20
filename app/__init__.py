@@ -1,20 +1,22 @@
 from flask import Flask
-from flask_cors import CORS
-from pymongo import MongoClient
+from flask_pymongo import PyMongo
+from config import Config
+
+# Inicializar PyMongo
+mongo = PyMongo()
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object("config.Config")  # Cargar configuración desde config.py
+    app.config.from_object(Config)
 
-    # Configurar CORS
-    CORS(app)
+    # Inicializar MongoDB con la aplicación
+    mongo.init_app(app)
 
-    # Conexión a MongoDB
-    mongo_client = MongoClient(app.config["MONGO_URI"])
-    app.db = mongo_client.get_database()  # Seleccionar la base de datos
-
-    # Registrar rutas
+    # Registrar Blueprint
     from app.routes import api
-    app.register_blueprint(api)
+    app.register_blueprint(api, url_prefix="/api")
+
+    # Hacer mongo accesible globalmente usando app
+    app.mongo = mongo
 
     return app
